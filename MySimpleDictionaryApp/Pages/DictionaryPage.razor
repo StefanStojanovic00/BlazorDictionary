@@ -1,0 +1,75 @@
+﻿@page "/dictionary"
+@using MySimpleDictionaryApp.Data
+@inject MySimpleDictionaryService DictService
+
+<h3>Dodaj novi unos</h3>
+
+<div>
+    <label>Key:</label><br />
+    <input @bind="Key" />
+</div>
+
+<div style="margin-top: 10px;">
+    <label>Value:</label><br />
+    <input @bind="Value" />
+</div>
+
+<div style="margin-top: 10px;">
+    <button @onclick="AddItem">Add</button>
+</div>
+
+<hr />
+
+<h4>Sadržaj rečnika</h4>
+
+<div>
+    <button @onclick="ClearAll" style="color: white; background-color: red; border:none; padding:5px 10px;">Clear</button>
+</div>
+
+<table border="1" cellpadding="5" cellspacing="0" style="margin-top: 10px; border-collapse: collapse;">
+    <thead style="background-color: #ddd;">
+        <tr>
+            <th>Key</th>
+            <th>Value</th>
+            <th>Akcija</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Items)
+        {
+            <tr>
+                <td>@item.Key</td>
+                <td>@item.Value</td>
+                <td>
+                    <button @onclick="() => RemoveItem(item.Key)" style="color: white; background-color: darkred; border:none; padding:3px 8px;">Remove</button>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+@code {
+    private string Key { get; set; }
+    private string Value { get; set; }
+
+    private List<KeyValuePair<string, string>> Items => DictService.GetAll().ToList();
+
+    private void AddItem()
+    {
+        if (!string.IsNullOrWhiteSpace(Key))
+        {
+            DictService.Add(Key, Value);
+            Key = Value = string.Empty;
+        }
+    }
+
+    private void RemoveItem(string key)
+    {
+        DictService.Remove(key);
+    }
+
+    private void ClearAll()
+    {
+        DictService.Clear();
+    }
+}

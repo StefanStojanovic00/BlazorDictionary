@@ -1,0 +1,246 @@
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
+
+namespace MySimpleDictionaryApp.Data
+{
+    public class MySimpleDictionary<TKey, TValue>
+    {
+        private struct Entry
+        {
+            public int HashCode;
+            public int Next;
+            public TKey Key;
+            public TValue Value;
+        }
+
+        private int[] Buckets;
+        private Entry[] Entries;
+        private int count;
+        private int FreeList;
+        private int FreeCount;
+        private const int InitialCapacity = 4;
+
+        public MySimpleDictionary()
+        {
+            Buckets = new int[InitialCapacity];
+            Entries = new Entry[InitialCapacity];
+            FreeList = -1;
+        }
+
+        private int GetBucketIndex(int hashCode) => hashCode % Buckets.Length;
+
+        private int FindEntryIndex(TKey key)
+        {
+            if (key == null) throw new ArgumentNullException(nameof(key));
+
+            int hashCode = key.GetHashCode() & 0x7FFFFFFF;
+            int bucketIndex = GetBucketIndex(hashCode);
+
+            for (int i = Buckets[bucketIndex] - 1; i >= 0; i = Entries[i].Next)
+            {
+                if (Entries[i].HashCode == hashCode && EqualityComparer<TKey>.Default.Equals(Entries[i].Key, key))
+                    return i;
+            }
+
+            return -1;
+        }
+
+        public void Add(TKey key, TValue value)
+        {
+            if (key == null) throw new ArgumentNullException(nameof(key));
+            if (FindEntryIndex(key) >= 0) throw new ArgumentException("Key already exists");
+
+            int hashCode = key.GetHashCode() & 0x7FFFFFFF;
+            int bucketIndex = GetBucketIndex(hashCode);
+
+            int index;
+            if (FreeCount > 0)
+            {
+                index = FreeList;
+                FreeList = Entries[index].Next;
+                FreeCount--;
+            }
+            else
+            {
+                if (count == Entries.Length)
+                {
+                    Resize();
+                    bucketIndex = GetBucketIndex(hashCode);
+                }
+
+                index = count++;
+            }
+
+            Entries[index].HashCode = hashCode;
+            Entries[index].Key = key;
+            Entries[index].Value = value;
+            Entries[index].Next = Buckets[bucketIndex] - 1;
+            Buckets[bucketIndex] = index + 1;
+        }
+
+        public bool TryGetValue(TKey key, out TValue value)
+        {
+            int index = FindEntryIndex(key);
+            if (index >= 0)
+            {
+                value = Entries[index].Value;
+                return true;
+            }
+
+            value = default!;
+            return false;
+        }
+
+        public bool Remove(TKey key)
+        {
+            if (key == null) throw new ArgumentNullException(nameof(key));
+
+            int hashCode = key.GetHashCode() & 0x7FFFFFFF;
+            int bucketIndex = GetBucketIndex(hashCode);
+            int last = -1;
+
+            for (int i = Buckets[bucketIndex] - 1; i >= 0; last = i, i = Entries[i].Next)
+            {
+                if (Entries[i].HashCode == hashCode &&
+                    EqualityComparer<TKey>.Default.Equals(Entries[i].Key, key))
+                {
+                    if (last < 0)
+                    {
+                        Buckets[bucketIndex] = Entries[i].Next + 1;
+                    }
+                    else
+                    {
+                        Entries[last].Next = Entries[i].Next;
+                    }
+
+                    Entries[i].HashCode = -1;
+                    Entries[i].Next = FreeList;
+                    Entries[i].Key = default!;
+                    Entries[i].Value = default!;
+                    FreeList = i;
+                    FreeCount++;
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        private void Resize()
+        {
+            int newSize = Entries.Length * 2;
+            int[] newBuckets = new int[newSize];
+            Entry[] newEntries = new Entry[newSize];
+
+            Array.Copy(Entries, newEntries, count);
+
+            for (int i = 0; i < count; i++)
+            {
+                if (newEntries[i].HashCode >= 0)
+                {
+                    int bucketIndex = newEntries[i].HashCode % newSize;
+                    newEntries[i].Next = newBuckets[bucketIndex] - 1;
+                    newBuckets[bucketIndex] = i + 1;
+                }
+            }
+
+            Buckets = newBuckets;
+            Entries = newEntries;
+        }
+
+        public bool ContainsKey(TKey key) => FindEntryIndex(key) >= 0;
+
+        public bool ContainsValue(TValue value)
+        {
+            var comparer = EqualityComparer<TValue>.Default;
+            for (int i = 0; i < count; i++)
+            {
+                if (Entries[i].HashCode >= 0 && comparer.Equals(Entries[i].Value, value))
+                    return true;
+            }
+            return false;
+        }
+
+        public void Clear()
+        {
+            Array.Clear(Buckets, 0, Buckets.Length);
+            Array.Clear(Entries, 0, count);
+            count = 0;
+            FreeList = -1;
+            FreeCount = 0;
+        }
+
+        public TValue this[TKey key]
+        {
+            get
+            {
+                if (TryGetValue(key, out var value)) return value;
+                throw new KeyNotFoundException();
+            }
+            set
+            {
+                if (key == null) throw new ArgumentNullException(nameof(key));
+
+                int index = FindEntryIndex(key);
+                if (index >= 0)
+                {
+                    Entries[index].Value = value;
+                }
+                else
+                {
+                    Add(key, value);
+                }
+            }
+        }
+
+        public int Count => count - FreeCount;
+
+        public IEnumerable<TKey> Keys
+        {
+            get
+            {
+                for (int i = 0; i < count; i++)
+                {
+                    if (Entries[i].HashCode >= 0)
+                        yield return Entries[i].Key;
+                }
+            }
+        }
+
+        public IEnumerable<TValue> Values
+        {
+            get
+            {
+                for (int i = 0; i < count; i++)
+                {
+                    if (Entries[i].HashCode >= 0)
+                        yield return Entries[i].Value;
+                }
+            }
+        }
+
+        public IEnumerator<KeyValuePair<TKey, TValue>> GetEnumerator()
+        {
+            for (int i = 0; i < count; i++)
+            {
+                if (Entries[i].HashCode >= 0)
+                    yield return new KeyValuePair<TKey, TValue>(Entries[i].Key, Entries[i].Value);
+            }
+        }
+
+        public List<KeyValuePair<TKey, TValue>> ToList()
+        {
+            var list = new List<KeyValuePair<TKey, TValue>>();
+            for (int i = 0; i < count; i++)
+            {
+                if (Entries[i].HashCode >= 0)
+                {
+                    list.Add(new KeyValuePair<TKey, TValue>(Entries[i].Key, Entries[i].Value));
+                }
+            }
+            return list;
+        }
+    }
+}

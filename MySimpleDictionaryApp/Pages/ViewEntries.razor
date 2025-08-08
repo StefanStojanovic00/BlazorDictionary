@@ -1,0 +1,62 @@
+@page "/view-entries"
+@using MySimpleDictionaryApp.Data
+
+<h3>Prikaz sadrzaja dictionary-ja</h3>
+
+@if (Entries.Count == 0)
+{
+    <p>Dictionary je prazan.</p>
+}
+else
+{
+    <table border="1" cellpadding="5" cellspacing="0">
+        <thead>
+            <tr>
+                <th>Key</th>
+                <th>Value</th>
+                <th>Akcija</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var entry in Entries)
+            {
+                <tr>
+                    <td>@entry.Key</td>
+                    <td>@entry.Value</td>
+                    <td>
+                        <button @onclick="() => RemoveEntry(entry.Key)">Remove</button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+    <button @onclick="ClearAll" style="margin-top:10px;">Clear</button>
+}
+
+@code {
+    private MySimpleDictionary<string, string> dict = AddEntry.GetDictionary();
+    private List<KeyValuePair<string, string>> Entries = new();
+
+    protected override void OnInitialized()
+    {
+        RefreshEntries();
+    }
+
+    private void RefreshEntries()
+    {
+        Entries = dict.ToList();
+        StateHasChanged();
+    }
+
+    private void RemoveEntry(string key)
+    {
+        dict.Remove(key);
+        RefreshEntries();
+    }
+
+    private void ClearAll()
+    {
+        dict.Clear();
+        RefreshEntries();
+    }
+}

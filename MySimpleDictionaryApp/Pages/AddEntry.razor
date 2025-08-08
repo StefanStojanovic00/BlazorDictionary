@@ -1,0 +1,48 @@
+﻿@page "/add-entry"
+@using MySimpleDictionaryApp.Data
+
+<h3>Dodaj unos u dictionary</h3>
+
+<div>
+    <label>Key: </label>
+    <input @bind="KeyInput" />
+</div>
+<div>
+    <label>Value: </label>
+    <input @bind="ValueInput" />
+</div>
+<div style="margin-top:10px;">
+    <button @onclick="AddEntryClicked" disabled="@(!CanAdd)">Dodaj</button>
+</div>
+
+@if (ErrorMessage != null)
+{
+    <p style="color:red">@ErrorMessage</p>
+}
+
+@code {
+    private string KeyInput = "";
+    private string ValueInput = "";
+    private string? ErrorMessage;
+
+    private static MySimpleDictionary<string, string> dict = new MySimpleDictionary<string, string>();
+
+    private bool CanAdd => !string.IsNullOrWhiteSpace(KeyInput) && !string.IsNullOrWhiteSpace(ValueInput);
+
+    private void AddEntryClicked()
+    {
+        try
+        {
+            dict.Add(KeyInput, ValueInput);
+            KeyInput = "";
+            ValueInput = "";
+            ErrorMessage = null;
+        }
+        catch (ArgumentException)
+        {
+            ErrorMessage = $"Key '{KeyInput}' već postoji!";
+        }
+    }
+
+    public static MySimpleDictionary<string, string> GetDictionary() => dict;
+}
