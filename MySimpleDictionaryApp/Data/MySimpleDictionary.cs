@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -29,13 +29,21 @@ namespace MySimpleDictionaryApp.Data
             FreeList = -1;
         }
 
-        private int GetBucketIndex(int hashCode) => hashCode % Buckets.Length;
-
-        private int FindEntryIndex(TKey key)
+        private static void ValidateKey(TKey key)
         {
             if (key == null) throw new ArgumentNullException(nameof(key));
+        }
 
-            int hashCode = key.GetHashCode() & 0x7FFFFFFF;
+        private int GetBucketIndex(int hashCode, int length) => hashCode % length;
+        private int GetBucketIndex(int hashCode) => GetBucketIndex(hashCode, Buckets.Length);
+
+        private int ComputeHashCode(TKey key) => key.GetHashCode() & 0x7FFFFFFF;
+       
+       private int FindEntryIndex(TKey key)
+        {
+            ValidateKey(key);
+
+            int hashCode = ComputeHashCode(key);
             int bucketIndex = GetBucketIndex(hashCode);
 
             for (int i = Buckets[bucketIndex] - 1; i >= 0; i = Entries[i].Next)
@@ -47,12 +55,18 @@ namespace MySimpleDictionaryApp.Data
             return -1;
         }
 
+ 
+
         public void Add(TKey key, TValue value)
         {
-            if (key == null) throw new ArgumentNullException(nameof(key));
-            if (FindEntryIndex(key) >= 0) throw new ArgumentException("Key already exists");
+            ValidateKey(key);
 
-            int hashCode = key.GetHashCode() & 0x7FFFFFFF;
+            if (FindEntryIndex(key) >= 0)
+            {
+                throw new ArgumentException("Ključ već postoji");
+            }
+
+            int hashCode = ComputeHashCode(key);
             int bucketIndex = GetBucketIndex(hashCode);
 
             int index;
@@ -70,7 +84,8 @@ namespace MySimpleDictionaryApp.Data
                     bucketIndex = GetBucketIndex(hashCode);
                 }
 
-                index = count++;
+                index = count;
+                count++;
             }
 
             Entries[index].HashCode = hashCode;
@@ -89,15 +104,16 @@ namespace MySimpleDictionaryApp.Data
                 return true;
             }
 
-            value = default!;
+            //value = default!;
+            value = default(TValue);
             return false;
         }
 
         public bool Remove(TKey key)
         {
-            if (key == null) throw new ArgumentNullException(nameof(key));
+            ValidateKey(key);
 
-            int hashCode = key.GetHashCode() & 0x7FFFFFFF;
+            int hashCode = ComputeHashCode(key);
             int bucketIndex = GetBucketIndex(hashCode);
             int last = -1;
 
@@ -163,9 +179,11 @@ namespace MySimpleDictionaryApp.Data
             return false;
         }
 
-        public void Clear()
+         public void Clear()
         {
-            Array.Clear(Buckets, 0, Buckets.Length);
+            for (int i = 0; i < Buckets.Length; i++)
+                Buckets[i] = 0;
+
             Array.Clear(Entries, 0, count);
             count = 0;
             FreeList = -1;
@@ -181,7 +199,7 @@ namespace MySimpleDictionaryApp.Data
             }
             set
             {
-                if (key == null) throw new ArgumentNullException(nameof(key));
+                ValidateKey(key);
 
                 int index = FindEntryIndex(key);
                 if (index >= 0)
