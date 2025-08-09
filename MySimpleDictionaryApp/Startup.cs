@@ -10,8 +10,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using MySimpleDictionaryApp.Data;
-//using MudBlazor.Services;
-
+using MudBlazor.Services;
 namespace MySimpleDictionaryApp
 {
     public class Startup
@@ -29,9 +28,9 @@ namespace MySimpleDictionaryApp
         {
             services.AddRazorPages();
             services.AddServerSideBlazor();
-            //services.AddSingleton<WeatherForecastService>();
-           //  services.AddMudServices();
+           services.AddMudServices();
             services.AddSingleton<MySimpleDictionaryService>();
+
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

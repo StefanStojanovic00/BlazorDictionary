@@ -9,29 +9,34 @@ namespace MySimpleDictionaryApp.Data
     {
         private readonly MySimpleDictionary<string, string> dictionary = new();
 
+        public event Action OnChange; 
+
+        public List<KeyValuePair<string, string>> GetAll() => dictionary.ToList();
+
         public void Add(string key, string value)
         {
-            dictionary[key] = value;
+            dictionary.Add(key, value);
+            NotifyStateChanged();
         }
 
-        public bool TryGet(string key, out string value)
+        public bool Remove(string key)
         {
-            return dictionary.TryGetValue(key, out value);
-        }
-
-        public IEnumerable<KeyValuePair<string, string>> GetAll()
-        {
-            return dictionary.ToList();
-        }
-
-        public void Remove(string key)
-        {
-            dictionary.Remove(key);
+            var removed = dictionary.Remove(key);
+            if (removed) NotifyStateChanged();
+            return removed;
         }
 
         public void Clear()
         {
             dictionary.Clear();
+            NotifyStateChanged();
         }
+
+        public bool ContainsKey(string key) => dictionary.ContainsKey(key);
+        public bool ContainsValue(string value) => dictionary.ContainsValue(value);
+
+        public int Count => dictionary.Count;
+
+        private void NotifyStateChanged() => OnChange?.Invoke();
     }
 }

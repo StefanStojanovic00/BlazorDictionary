@@ -1,62 +1,57 @@
-@page "/view-entries"
-@using MySimpleDictionaryApp.Data
+﻿@page "/view-entries"
+@inject MySimpleDictionaryService DictService
+@using MudBlazor
 
-<h3>Prikaz sadrzaja dictionary-ja</h3>
+<MudPaper Class="pa-4">
+    <MudTable Items="entries">
+        <HeaderContent>
+            <MudTh>Key</MudTh>
+            <MudTh>Value</MudTh>
+            <MudTh>Actions</MudTh>
+        </HeaderContent>
+        <RowTemplate>
+            <MudTd>@context.Key</MudTd>
+            <MudTd>@context.Value</MudTd>
+            <MudTd>
+                <MudButton Color="Color.Error" OnClick="@(() => RemoveEntry(context.Key))">
+                    Remove
+                </MudButton>
+            </MudTd>
+        </RowTemplate>
+    </MudTable>
 
-@if (Entries.Count == 0)
-{
-    <p>Dictionary je prazan.</p>
-}
-else
-{
-    <table border="1" cellpadding="5" cellspacing="0">
-        <thead>
-            <tr>
-                <th>Key</th>
-                <th>Value</th>
-                <th>Akcija</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var entry in Entries)
-            {
-                <tr>
-                    <td>@entry.Key</td>
-                    <td>@entry.Value</td>
-                    <td>
-                        <button @onclick="() => RemoveEntry(entry.Key)">Remove</button>
-                    </td>
-                </tr>
-            }
-        </tbody>
-    </table>
-    <button @onclick="ClearAll" style="margin-top:10px;">Clear</button>
-}
+    <MudButton Color="Color.Error" Class="mt-2" OnClick="@ClearAll">
+        Clear All
+    </MudButton>
+</MudPaper>
 
 @code {
-    private MySimpleDictionary<string, string> dict = AddEntry.GetDictionary();
-    private List<KeyValuePair<string, string>> Entries = new();
+    private List<KeyValuePair<string, string>> entries = new();
 
     protected override void OnInitialized()
     {
-        RefreshEntries();
+        LoadEntries();
+        DictService.OnChange += Refresh;
     }
 
-    private void RefreshEntries()
+    private void LoadEntries() =>
+        entries = DictService.GetAll();
+
+    private void Refresh()
     {
-        Entries = dict.ToList();
-        StateHasChanged();
+        InvokeAsync(() =>
+        {
+            LoadEntries();
+            StateHasChanged();
+        });
     }
 
-    private void RemoveEntry(string key)
-    {
-        dict.Remove(key);
-        RefreshEntries();
-    }
+    private void RemoveEntry(string key) => DictService.Remove(key);
 
-    private void ClearAll()
+    private void ClearAll() => DictService.Clear();
+
+    public void Dispose()
     {
-        dict.Clear();
-        RefreshEntries();
+        DictService.OnChange -= Refresh; // Sprečava curenje event handler-a
     }
 }

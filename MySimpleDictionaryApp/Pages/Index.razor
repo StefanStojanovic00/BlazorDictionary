@@ -2,12 +2,14 @@
 
 @using MySimpleDictionaryApp.Data
 
-<h1>Hello, world!</h1>
+<h1>Dictionary Blazor</h1>
 
-Welcome to your new app.
 
-<h3>MySimpleDictionary Demo</h3>
-
-<NavLink href="/add-entry">Dodaj unos</NavLink>
-<br />
-<NavLink href="/view-entries">Pregled unosa</NavLink>
+<div style="display: flex; gap: 2rem;">
+    <div style="flex: 1;">
+        <AddEntry />
+    </div>
+    <div style="flex: 1;">
+        <ViewEntries />
+    </div>
+</div>
