@@ -3,6 +3,7 @@
 ## Opis projekta
 
 **MySimpleDictionaryApp** je Blazor Server aplikacija koja demonstrira upotrebu sopstvene implementacije generičke kolekcije `MySimpleDictionary<TKey, TValue>`. Aplikacija koristi MudBlazor za moderan i responzivan korisnički interfejs.
+
 ---
 
 ## Glavne komponente
