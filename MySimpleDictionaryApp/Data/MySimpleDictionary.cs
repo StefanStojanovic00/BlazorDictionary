@@ -5,7 +5,7 @@ using System.Linq;
 
 namespace MySimpleDictionaryApp.Data
 {
-    public class MySimpleDictionary<TKey, TValue>
+    public class MySimpleDictionary<TKey, TValue> : IEnumerable<KeyValuePair<TKey, TValue>>
     {
         private struct Entry
         {
@@ -248,17 +248,11 @@ namespace MySimpleDictionaryApp.Data
             }
         }
 
-        public List<KeyValuePair<TKey, TValue>> ToList()
+        IEnumerator IEnumerable.GetEnumerator()
         {
-            var list = new List<KeyValuePair<TKey, TValue>>();
-            for (int i = 0; i < count; i++)
-            {
-                if (Entries[i].HashCode >= 0)
-                {
-                    list.Add(new KeyValuePair<TKey, TValue>(Entries[i].Key, Entries[i].Value));
-                }
-            }
-            return list;
+            return GetEnumerator();
         }
+
+      
     }
 }

@@ -11,7 +11,8 @@ namespace MySimpleDictionaryApp.Data
 
         public event Action OnChange; 
 
-        public List<KeyValuePair<string, string>> GetAll() => dictionary.ToList();
+
+        public IEnumerable<KeyValuePair<string, string>> GetAll() => dictionary;
 
         public void Add(string key, string value)
         {

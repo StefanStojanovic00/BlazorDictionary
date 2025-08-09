@@ -26,7 +26,7 @@
 </MudPaper>
 
 @code {
-    private List<KeyValuePair<string, string>> entries = new();
+    private IEnumerable<KeyValuePair<string, string>> entries = Enumerable.Empty<KeyValuePair<string, string>>();
 
     protected override void OnInitialized()
     {
@@ -34,8 +34,8 @@
         DictService.OnChange += Refresh;
     }
 
-    private void LoadEntries() =>
-        entries = DictService.GetAll();
+   private void LoadEntries() =>
+    entries = DictService.GetAll();
 
     private void Refresh()
     {
