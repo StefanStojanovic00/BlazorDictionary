@@ -36,18 +36,22 @@
 ## Koriscenje
 
 ![Popunjena tablica](https://github.com/user-attachments/assets/1b8c644c-2424-43ce-b863-e11373a5928b)
+*Prikaz korisničkog interfejsa sa  popunjemom tabelom unosa ključeva i vrednosti.*
 
 ---
 
 ![Obrisan kljuc 123](https://github.com/user-attachments/assets/ed0a837e-3b15-47bc-b2ba-fc891d8d2a82)
+*Prikaz brisanja 123.*
 
 ---
 
 ![Pokusaj dodavanja istog kljuca 2024](https://github.com/user-attachments/assets/df025fa0-e7b7-4de0-936d-e52d1d7c5474)
+*Pokusaj dodavanja istog kljuca 2024.*
 
 ---
 
 ![Brisanje svih elemenata](https://github.com/user-attachments/assets/0ea268ff-98e8-45a8-8674-e749af049dcf)
+*Brisanje svih elemenat*
 
 ---
 
